@@ -10,6 +10,7 @@ import UIKit
 
 class HomeTableViewController: UITableViewController {
     
+    let url = "https://api.twitter.com/1.1/statuses/home_timeline.json"
     var tweets = [NSDictionary]()
     var numberOfTweets: Int!
     
@@ -24,12 +25,12 @@ class HomeTableViewController: UITableViewController {
         tableView.refreshControl = tweetsRefreshControl
     }
     
-    // Get tweets
-    @objc func getTweets() {
-        let url = "https://api.twitter.com/1.1/statuses/home_timeline.json"
-        let params = ["count": 10]
+    // MARK: - Retreive tweets functions
+    // General tweets handler
+    func handleTweets(numberOfTweets: Int, refreshTweets: Bool) {
+        let params = ["count": numberOfTweets]
         
-        TwitterAPICaller.client?.getDictionariesRequest(url: url, parameters: params, success: { (tweets: [NSDictionary]) in
+        TwitterAPICaller.client?.getDictionariesRequest(url: self.url, parameters: params, success: { (tweets: [NSDictionary]) in
             // Clean tweets to prevent duplicates being appended
             self.tweets.removeAll()
             
@@ -38,11 +39,27 @@ class HomeTableViewController: UITableViewController {
             }
             
             self.tableView.reloadData()
-            self.tweetsRefreshControl.endRefreshing()
+            
+            // Allow for pull down refresh if refreshTweets is true
+            if refreshTweets {
+                self.tweetsRefreshControl.endRefreshing()
+            }
         }, failure: { (Error) in
             print("Could not retreive tweets! Sorry for the inconvenience.")
         })
     }
+    
+    // Get tweets
+    @objc func getTweets() {
+        numberOfTweets = 20
+        handleTweets(numberOfTweets: numberOfTweets, refreshTweets: true)
+    }
+    
+    func getMoreTweets() {
+        numberOfTweets = numberOfTweets + 10
+        handleTweets(numberOfTweets: numberOfTweets, refreshTweets: false)
+    }
+    
     
     @IBAction func onLogout(_ sender: Any) {
         TwitterAPICaller.client?.logout()
@@ -50,6 +67,13 @@ class HomeTableViewController: UITableViewController {
         // Bring user back to login page
         self.dismiss(animated: true, completion: nil)
         UserDefaults.standard.set(false, forKey: "userLoggedIn")
+    }
+    
+    // MARK: - tableView handlers
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        if indexPath.row + 1 == tweets.count {
+            getMoreTweets()
+        }
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
