@@ -55,6 +55,22 @@ class TweetCell: UITableViewCell {
     }
     
     @IBAction func setRetweet(_ sender: Any) {
+        TwitterAPICaller.client?.retweet(tweetId: tweetId, success: {
+            self.isRetweeted(true)
+        }, failure: { (Error) in
+            print("Cannot retweet.")
+            print("Error: \(Error)")
+        })
+    }
+    
+    func isRetweeted(_ isRetweeted: Bool) {
+        if (isRetweeted) {
+            retweetButton.setImage(UIImage(named: "Retweet-Green"), for: UIControl.State.normal)
+            retweetButton.isEnabled = false
+        } else {
+            retweetButton.setImage(UIImage(named: "retweet"), for: UIControl.State.normal)
+            retweetButton.isEnabled = true
+        }
     }
     
     override func setSelected(_ selected: Bool, animated: Bool) {
