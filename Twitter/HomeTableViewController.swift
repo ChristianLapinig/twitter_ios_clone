@@ -19,6 +19,14 @@ class HomeTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        
+        tweetsRefreshControl.addTarget(self, action: #selector(getTweets), for: .valueChanged)
+        tableView.refreshControl = tweetsRefreshControl
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
         getTweets()
         
         tweetsRefreshControl.addTarget(self, action: #selector(getTweets), for: .valueChanged)
@@ -45,6 +53,7 @@ class HomeTableViewController: UITableViewController {
                 self.tweetsRefreshControl.endRefreshing()
             }
         }, failure: { (Error) in
+            print("Error: \(Error)")
             print("Could not retreive tweets! Sorry for the inconvenience.")
         })
     }
@@ -79,7 +88,9 @@ class HomeTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "tweetCell", for: indexPath) as! TweetCell
         let tweet = tweets[indexPath.row]
+        let tweetId = tweet["id"] as! Int
         let user = tweet["user"] as! NSDictionary
+        let favorited = tweet["favorited"] as! Bool
         let handle = user["screen_name"] as! String
         let imageUrl = URL(string: (user["profile_image_url_https"] as? String)!)
         let data = try? Data(contentsOf: imageUrl!)
@@ -90,6 +101,8 @@ class HomeTableViewController: UITableViewController {
         
         cell.handleLabel.text = handle
         cell.tweetContent.text = tweet["text"] as! String
+        cell.tweetId = tweetId
+        cell.isFavorited(favorited)
         
         return cell
     }

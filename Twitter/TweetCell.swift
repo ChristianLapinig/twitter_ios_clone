@@ -12,12 +12,51 @@ class TweetCell: UITableViewCell {
     @IBOutlet weak var profileImageView: UIImageView!
     @IBOutlet weak var handleLabel: UILabel!
     @IBOutlet weak var tweetContent: UILabel!
+    @IBOutlet weak var favButton: UIButton!
+    @IBOutlet weak var retweetButton: UIButton!
+    
+    // Set properties
+    var favorited: Bool = false
+    var tweetId: Int = -1
     
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
     }
-
+    
+    @IBAction func setFavorite(_ sender: Any) {
+        let toBeFavorited = !favorited
+        
+        if (toBeFavorited) {
+            TwitterAPICaller.client?.favoriteTweet(tweetId: tweetId, success: {
+                self.isFavorited(true)
+            }, failure: { (Error) in
+                print("Could not favorite tweet.")
+                print("Error: \(Error)")
+            })
+        } else {
+            TwitterAPICaller.client?.unfavoriteTweet(tweetId: tweetId, success: {
+                self.isFavorited(false)
+            }, failure: { (Error) in
+                print("Could not unfavorite tweet.")
+                print("Error: \(Error)")
+            })
+        }
+    }
+    
+    func isFavorited(_ isFavorited: Bool) {
+        favorited = isFavorited
+        
+        if (favorited) {
+            favButton.setImage(UIImage(named: "favorite-tweet"), for: UIControl.State.normal)
+        } else {
+            favButton.setImage(UIImage(named: "favorite-tweet-empty"), for: UIControl.State.normal)
+        }
+    }
+    
+    @IBAction func setRetweet(_ sender: Any) {
+    }
+    
     override func setSelected(_ selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
 
